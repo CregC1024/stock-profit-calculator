@@ -1,3 +1,9 @@
+<img width="899" height="861" alt="Screenshot 2026-09-22 at 12 21 57 AM" src="https://github.com/user-attachments/assets/5ccd5407-ea6a-4b1b-8f24-626cda4250f3" />
+
+<img width="912" height="855" alt="Screenshot 2026-09-22 at 12 22 34 AM" src="https://github.com/user-attachments/assets/6ec4c980-b0b9-4c4b-a118-f99b4588f06a" />
+
+
+
 # Stock Profit & Loss Calculator 📊
 
 A full-stack web application built with **Angular 22** on the frontend and **Python FastAPI** on the backend. The application calculates stock transaction metrics including Net Profit/Loss, Return on Investment (ROI %), Cost Basis, Net Proceeds, Total Commissions, and Break-Even Sale Price per share.
