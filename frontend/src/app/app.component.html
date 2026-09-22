@@ -1,0 +1,191 @@
+<div class="app-container">
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo-icon">📊</div>
+      <div>
+        <h1>Stock Profit & Loss Calculator</h1>
+        <p class="subtitle">Angular 22 + Python FastAPI Stock Transaction Analysis Engine</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Presets Section -->
+    <section class="presets-card">
+      <div class="section-title">⚡ Quick Scenarios</div>
+      <div class="preset-buttons">
+        <button 
+          *ngFor="let preset of presets" 
+          type="button" 
+          class="preset-btn"
+          (click)="applyPreset(preset)">
+          {{ preset.name }}
+        </button>
+      </div>
+    </section>
+
+    <div class="calculator-grid">
+      <!-- Input Form Card -->
+      <section class="card form-card">
+        <h2>📥 Transaction Details</h2>
+        <form [formGroup]="calcForm" (ngSubmit)="onCalculate()">
+          <div class="form-group">
+            <label for="shares">Number of Shares</label>
+            <div class="input-wrapper">
+              <span class="input-icon">📦</span>
+              <input 
+                id="shares" 
+                type="number" 
+                step="any" 
+                formControlName="shares" 
+                placeholder="e.g. 100" 
+                (input)="onCalculate()">
+            </div>
+            <div *ngIf="calcForm.get('shares')?.invalid && calcForm.get('shares')?.touched" class="field-error">
+              Shares must be greater than 0.
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="purchase_price">Purchase Price per Share ($)</label>
+              <div class="input-wrapper">
+                <span class="input-icon">$</span>
+                <input 
+                  id="purchase_price" 
+                  type="number" 
+                  step="any" 
+                  formControlName="purchase_price" 
+                  placeholder="0.00" 
+                  (input)="onCalculate()">
+              </div>
+              <div *ngIf="calcForm.get('purchase_price')?.invalid && calcForm.get('purchase_price')?.touched" class="field-error">
+                Price cannot be negative.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="purchase_commission">Purchase Commission ($)</label>
+              <div class="input-wrapper">
+                <span class="input-icon">$</span>
+                <input 
+                  id="purchase_commission" 
+                  type="number" 
+                  step="any" 
+                  formControlName="purchase_commission" 
+                  placeholder="0.00" 
+                  (input)="onCalculate()">
+              </div>
+              <div *ngIf="calcForm.get('purchase_commission')?.invalid && calcForm.get('purchase_commission')?.touched" class="field-error">
+                Commission cannot be negative.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="sale_price">Sale Price per Share ($)</label>
+              <div class="input-wrapper">
+                <span class="input-icon">$</span>
+                <input 
+                  id="sale_price" 
+                  type="number" 
+                  step="any" 
+                  formControlName="sale_price" 
+                  placeholder="0.00" 
+                  (input)="onCalculate()">
+              </div>
+              <div *ngIf="calcForm.get('sale_price')?.invalid && calcForm.get('sale_price')?.touched" class="field-error">
+                Price cannot be negative.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="sale_commission">Sale Commission ($)</label>
+              <div class="input-wrapper">
+                <span class="input-icon">$</span>
+                <input 
+                  id="sale_commission" 
+                  type="number" 
+                  step="any" 
+                  formControlName="sale_commission" 
+                  placeholder="0.00" 
+                  (input)="onCalculate()">
+              </div>
+              <div *ngIf="calcForm.get('sale_commission')?.invalid && calcForm.get('sale_commission')?.touched" class="field-error">
+                Commission cannot be negative.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="calcForm.invalid || loading">
+              <span *ngIf="!loading">🧮 Calculate Outcome</span>
+              <span *ngIf="loading">Calculating...</span>
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="resetForm()">
+              🔄 Reset Form
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Results Card -->
+      <section class="card results-card" *ngIf="result">
+        <h2>📈 Performance Summary</h2>
+
+        <!-- Main Outcome Banner -->
+        <div class="outcome-banner" [ngClass]="{'profit': result.net_profit_loss > 0, 'loss': result.net_profit_loss < 0, 'even': result.net_profit_loss === 0}">
+          <div class="banner-title">
+            <span *ngIf="result.net_profit_loss > 0">🎉 NET PROFIT</span>
+            <span *ngIf="result.net_profit_loss < 0">⚠️ NET LOSS</span>
+            <span *ngIf="result.net_profit_loss === 0">⚖️ BREAK-EVEN</span>
+          </div>
+          <div class="banner-amount">
+            {{ result.net_profit_loss >= 0 ? '+' : '' }}${{ result.net_profit_loss | number:'1.2-2' }}
+          </div>
+          <div class="banner-subtitle">
+            ROI: <strong [class.positive]="result.roi_percent > 0" [class.negative]="result.roi_percent < 0">{{ result.roi_percent | number:'1.2-2' }}%</strong>
+          </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-item highlight">
+            <div class="metric-label">Target Break-Even Sale Price</div>
+            <div class="metric-value text-blue">${{ result.break_even_price | number:'1.2-2' }}</div>
+            <div class="metric-sub">Required per share to cover costs & commissions</div>
+          </div>
+
+          <div class="metric-item">
+            <div class="metric-label">Total Cost Basis</div>
+            <div class="metric-value">${{ result.net_cost_basis | number:'1.2-2' }}</div>
+            <div class="metric-sub">Purchase (${{ result.gross_purchase_cost | number:'1.2-2' }}) + Comm (${{ result.purchase_commission | number:'1.2-2' }})</div>
+          </div>
+
+          <div class="metric-item">
+            <div class="metric-label">Net Proceeds</div>
+            <div class="metric-value">${{ result.net_proceeds | number:'1.2-2' }}</div>
+            <div class="metric-sub">Revenue (${{ result.gross_sale_revenue | number:'1.2-2' }}) - Comm (${{ result.sale_commission | number:'1.2-2' }})</div>
+          </div>
+
+          <div class="metric-item">
+            <div class="metric-label">Total Commissions Paid</div>
+            <div class="metric-value text-amber">${{ result.total_commissions | number:'1.2-2' }}</div>
+            <div class="metric-sub">Buy (${{ result.purchase_commission | number:'1.2-2' }}) + Sell (${{ result.sale_commission | number:'1.2-2' }})</div>
+          </div>
+        </div>
+
+        <!-- Narrative Summary -->
+        <div class="narrative-box">
+          <div class="narrative-title">Financial Breakdown</div>
+          <p class="narrative-text">
+            You purchased <strong>{{ result.shares | number }}</strong> shares at <strong>${{ result.purchase_price | number:'1.2-2' }}</strong> each for a gross cost of <strong>${{ result.gross_purchase_cost | number:'1.2-2' }}</strong> plus <strong>${{ result.purchase_commission | number:'1.2-2' }}</strong> in purchase commission.
+            You later sold them at <strong>${{ result.sale_price | number:'1.2-2' }}</strong> each for <strong>${{ result.gross_sale_revenue | number:'1.2-2' }}</strong> gross revenue minus <strong>${{ result.sale_commission | number:'1.2-2' }}</strong> in sale commission.
+            Your total transaction cost was <strong>${{ result.net_cost_basis | number:'1.2-2' }}</strong> and net received was <strong>${{ result.net_proceeds | number:'1.2-2' }}</strong>, yielding a net result of <strong [class.positive]="result.net_profit_loss > 0" [class.negative]="result.net_profit_loss < 0">{{ result.message }}</strong>.
+          </p>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
